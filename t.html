@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máy Ảo Shopee Mini - Mobile Emulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome cho icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .phone-frame {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 12px #1f2937, 0 0 0 16px #374151;
+        }
+        /* Hiệu ứng ẩn thanh cuộn nhưng vẫn cuộn được */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header tiêu đề -->
+    <header class="mb-6 text-center">
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
+            📱 Máy Ảo Trình Duyệt Shopee Mini (120Hz Mode)
+        </h1>
+        <p class="text-sm text-slate-400 mt-1">Giả lập thiết bị di động, tối ưu lướt web, săn sale và quản lý giỏ hàng</p>
+    </header>
+
+    <!-- Khung điều khiển phụ trợ bên ngoài -->
+    <div class="w-full max-w-4xl bg-slate-800 p-4 rounded-xl shadow-lg mb-6 flex flex-wrap gap-4 items-center justify-between border border-slate-700">
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold uppercase text-orange-400">Thiết bị ảo:</span>
+            <select id="deviceSelect" onchange="changeDevice()" class="bg-slate-900 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-orange-500">
+                <option value="samsung_s23">Samsung S23 Ultra (120Hz)</option>
+                <option value="iphone_15">iPhone 15 Pro Max</option>
+                <option value="pixel_7">Google Pixel 7 Pro</option>
+            </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="quickNav('https://shopee.vn')" class="bg-orange-600 hover:bg-orange-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                <i class="fa-solid fa-house"></i> Trang Chủ Shopee
+            </button>
+            <button onclick="quickNav('https://shopee.vn/buyer/login')" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                <i class="fa-solid fa-user"></i> Đăng Nhập
+            </button>
+            <button onclick="quickNav('https://shopee.vn/cart')" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                <i class="fa-solid fa-cart-shopping"></i> Giỏ Hàng
+            </button>
+            <button onclick="toggleRotate()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition" title="Xoay màn hình">
+                <i class="fa-solid fa-rotate"></i> Xoay Ngang/Dọc
+            </button>
+        </div>
+    </div>
+
+    <!-- KHUNG MÁY ẢO ĐIỆN THOẠI (PHONE FRAME) -->
+    <div id="phoneWrapper" class="transition-all duration-300">
+        <div id="phoneContainer" class="phone-frame w-[390px] h-[800px] bg-black rounded-[40px] relative overflow-hidden flex flex-col">
+            
+            <!-- Dynamic Island / Camera trước giả lập -->
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 h-6 w-32 bg-black rounded-b-2xl z-30 flex items-center justify-center">
+                <div class="w-3 h-3 bg-slate-900 rounded-full mr-2"></div>
+                <div class="w-2 h-2 bg-slate-900 rounded-full"></div>
+            </div>
+
+            <!-- Thanh trạng thái điện thoại (Status Bar) -->
+            <div class="bg-slate-950 text-white text-[11px] px-6 pt-2 pb-1 flex justify-between items-center z-20 select-none">
+                <span id="currentTime">12:00</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] bg-orange-500 text-black px-1 rounded font-bold">120Hz</span>
+                    <i class="fa-solid fa-signal"></i>
+                    <i class="fa-solid fa-wifi"></i>
+                    <i class="fa-solid fa-battery-full text-emerald-400"></i>
+                </div>
+            </div>
+
+            <!-- Trình duyệt Mini bên trong máy ảo -->
+            <div class="bg-slate-900 px-3 py-2 flex items-center gap-2 border-b border-slate-800 z-20">
+                <button onclick="goBack()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-left text-sm"></i></button>
+                <button onclick="goForward()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-right text-sm"></i></button>
+                
+                <!-- Thanh địa chỉ URL -->
+                <div class="flex-1 bg-slate-800 rounded-full px-3 py-1 flex items-center gap-2 border border-slate-700">
+                    <i class="fa-solid fa-lock text-xs text-emerald-400"></i>
+                    <input type="text" id="urlInput" value="https://shopee.vn" onkeydown="handleUrlKey(event)" class="bg-transparent text-xs w-full text-white focus:outline-none">
+                    <button onclick="reloadFrame()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-rotate-right text-xs"></i></button>
+                </div>
+            </div>
+
+            <!-- Màn hình hiển thị nội dung web (Iframe chứa Shopee) -->
+            <div class="flex-1 relative bg-white overflow-hidden">
+                <iframe id="browserFrame" src="https://shopee.vn" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+                
+                <!-- Lớp thông báo chặn hiển thị trực tiếp (do chính sách X-Frame-Options của Shopee) -->
+                <div id="frameWarning" class="absolute inset-0 bg-slate-900/95 p-6 flex flex-col items-center justify-center text-center z-10 hidden">
+                    <i class="fa-solid fa-shield-halved text-4xl text-orange-500 mb-3"></i>
+                    <h3 class="text-base font-bold text-white mb-2">Chính sách bảo mật của Shopee</h3>
+                    <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                        Shopee chặn việc hiển thị trực tiếp qua khung nhúng (iframe). Để đăng nhập, săn mã và đặt hàng an toàn tuyệt đối không bị quét bot, bạn hãy mở trang web này ra cửa sổ độc lập:
+                    </p>
+                    <a id="externalLink" href="https://shopee.vn" target="_blank" class="bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-lg transition">
+                        <i class="fa-solid fa-external-link-alt mr-1"></i> Mở Shopee trong Tab Mới
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thanh điều hướng dưới cùng của điện thoại (Navigation Bar) -->
+            <div class="bg-slate-950 py-3 px-6 flex justify-around items-center text-slate-400 z-20 select-none border-t border-slate-900">
+                <button onclick="quickNav('https://shopee.vn')" class="hover:text-orange-500"><i class="fa-solid fa-house text-lg"></i></button>
+                <button onclick="quickNav('https://shopee.vn/search')" class="hover:text-orange-500"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
+                <button onclick="quickNav('https://shopee.vn/cart')" class="hover:text-orange-500"><i class="fa-solid fa-cart-shopping text-lg"></i></button>
+                <button onclick="quickNav('https://shopee.vn/user/purchase')" class="hover:text-orange-500"><i class="fa-solid fa-user text-lg"></i></button>
+            </div>
+            
+            <!-- Thanh Home Indicator của iOS/Android -->
+            <div class="bg-slate-950 pb-1 flex justify-center">
+                <div class="w-32 h-1 bg-slate-700 rounded-full"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script điều khiển máy ảo -->
+    <script>
+        // Cập nhật đồng hồ thời gian thực
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('currentTime').innerText = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        const frame = document.getElementById('browserFrame');
+        const urlInput = document.getElementById('urlInput');
+        const warningDiv = document.getElementById('frameWarning');
+        const externalLink = document.getElementById('externalLink');
+
+        // Điều hướng nhanh
+        function quickNav(url) {
+            urlInput.value = url;
+            frame.src = url;
+            externalLink.href = url;
+        }
+
+        // Xử lý khi gõ URL và bấm Enter
+        function handleUrlKey(e) {
+            if (e.key === 'Enter') {
+                let targetUrl = urlInput.value;
+                if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+                    targetUrl = 'https://' + targetUrl;
+                }
+                frame.src = targetUrl;
+                externalLink.href = targetUrl;
+            }
+        }
+
+        function reloadFrame() {
+            frame.src = frame.src;
+        }
+
+        // Kiểm tra lỗi nếu trang web bị chặn nhúng iframe
+        frame.addEventListener('load', () => {
+            try {
+                // Nếu trang web tải thành công và cùng domain hoặc cho phép
+                warningDiv.classList.add('hidden');
+            } catch (e) {
+                // Nếu bị chặn X-Frame-Options
+                warningDiv.classList.remove('hidden');
+            }
+        });
+
+        // Giả lập đổi thiết bị
+        function changeDevice() {
+            const container = document.getElementById('phoneContainer');
+            const select = document.getElementById('deviceSelect').value;
+            if (select === 'samsung_s23') {
+                container.style.width = '390px';
+                container.style.height = '800px';
+            } else if (select === 'iphone_15') {
+                container.style.width = '393px';
+                container.style.height = '852px';
+            } else if (select === 'pixel_7') {
+                container.style.width = '412px';
+                container.style.height = '892px';
+            }
+        }
+
+        // Xoay màn hình dọc/ngang
+        let isRotated = false;
+        function toggleRotate() {
+            const container = document.getElementById('phoneContainer');
+            isRotated = !isRotated;
+            if (isRotated) {
+                let currentW = container.style.width || '390px';
+                let currentH = container.style.height || '800px';
+                container.style.width = currentH;
+                container.style.height = currentW;
+            } else {
+                changeDevice();
+            }
+        }
+    </script>
+</body>
+</html>
